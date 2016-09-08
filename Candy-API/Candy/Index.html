@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+
+
+    <title>Partida</title>
+    <link href="Content/bootstrap.css" rel="stylesheet">
+    <link href="Content/site.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #313738;
+        }
+
+        #ele {
+            margin: 0 auto;
+            padding: 50px 0;
+        }
+
+        table {
+            margin: 0 auto;
+        }
+
+        .rojo {
+            background-color: red;
+        }
+
+        .azul {
+            background-color: blue;
+        }
+
+        .amarillo {
+            background-color: yellow;
+        }
+
+        .naranja {
+            background-color: orange;
+        }
+
+        .verde {
+            background-color: green;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: left;
+            color: #757d5f;
+            font-size: 8px;
+            border: solid 1px #313738;
+            background-color: #07889B;
+            border-radius: 4px;
+        }
+
+        td:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        #tableCandy {
+            margin-top: 10%;
+        }
+
+    </style>
+
+
+</head>
+<body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                Candy
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li></li>
+                    <li></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+
+        <div id="container">
+
+        </div>
+        <footer>
+            <p></p>
+        </footer>
+    </div>
+    <script src="Scripts/jquery-1.10.2.js"></script>
+    <script src="Scripts/bootstrap.js"></script>
+    <script src="Scripts/modernizr-2.6.2.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            var contToques = 0;
+            var movimiento1 = -1;
+            var movimiento2 = -1;
+            var apiURL = "http://localhost:7659/api/";
+            var partida = -1;
+
+            $.post(apiURL + "partida", { id: '0' })
+                        .done(function (data) {
+                            partida = data.id;
+                            Paint(data);
+                        });
+
+
+            $("body").on("click", "td", function () {
+
+                if (movimiento1 == $(this).attr("numero") || movimiento2 == $(this).attr("numero")) {
+                    return;
+                }
+
+                if (contToques == 0) {
+                    movimiento1 = $(this).attr("numero");
+                    contToques++;
+                }
+                else {
+                    contToques++;
+                    movimiento2 = $(this).attr("numero");
+                }
+
+                if (movimiento2 > -1) {
+
+                    $.ajax({
+                        url: apiURL + "partida/" + partida,
+                        type: 'PUT',
+                        data: { 'usuario': 0, 'movimiento1': movimiento1, 'movimiento2': movimiento2 },
+                        success: function (data) {
+                            Paint(data);
+                            movimiento1 = -1;
+                            movimiento2 = -1;
+                            contToques = 0;
+                        }
+                    });
+                }
+            });
+
+        });
+
+
+        function Paint(data) {
+            $("#container").html("");
+            var table = "";
+            var color = "red";
+            table += "<table id='tableCandy'>";
+            for (var i = 0; i < data.elementos.length; i++) {
+                if (i == 0 || i == 9 || i == 18 || i == 27 || i == 36 || i == 45 || i == 54 || i == 63)
+                    table += "<tr>";
+
+                if (data.elementos[i].color == 0)
+                    color = "rojo";
+
+                if (data.elementos[i].color == 1)
+                    color = "azul";
+
+                if (data.elementos[i].color == 2)
+                    color = "amarillo";
+
+                if (data.elementos[i].color == 3)
+                    color = "naranja";
+
+                if (data.elementos[i].color == 4)
+                    color = "verde";
+
+                table += "<td id='" + data.elementos[i].id + "' numero='" + data.elementos[i].id + "' class='" + color + "'   ></td>";
+                if (i == 8 || i == 17 || i == 26 || i == 35 || i == 44 || i == 53 || i == 62 || i == 71)
+                    table += "</tr>";
+            }
+            table += "</table>";
+            $("#container").html(table);
+        }
+
+    </script>
+
+</body>
+</html>
